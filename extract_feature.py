@@ -14,9 +14,15 @@ def get_word_index():
 
     index = { w:k for k,w in enumerate(sorted_words)}
 
-    return index
+    return index,sorted_words
 
 def get_subset_feature():
+
+    return 
+
+    index, sorted_words = get_word_index()
+
+    X,y = None , None
     
     for subset in ['s1','s2','s3','s4','s5']:
         for classname in ['baseball', 'hockey']:
@@ -27,10 +33,12 @@ def get_subset_feature():
             for file_name in os.listdir( path ):
 
                 fin = open(os.path.join(path,file_name)).read()
+
+                cnt={ w:0 for w in index}
                 
                 for w in re.findall('[a-zA-Z0-9]+',fin):
                     #dic[i] = dic.get(i,0)+1 
-                    words.add(w)
+                    cnt[w]+=1
 
 def get_words_bag():
 
