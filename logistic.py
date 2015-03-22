@@ -20,7 +20,7 @@ class myLogisticRegression:
         N,D=X.shape
         self.theta=np.zeros(D)
 
-        for it in range(1000):
+        for it in range(100):
             for i in range(N):
                 self.theta += self.alpha *  ( y[i] - self.h( self.theta, X[i]) )  * X[i] 
 

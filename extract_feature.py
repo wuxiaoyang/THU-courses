@@ -4,7 +4,7 @@ import sys,os
 import re
 import cPickle as pickle
 
-stop_words = set(['of','s','t'])
+stop_words = pickle.load( open('stop_words.dat') )
 all_files = {}
 all_terms = {}
 IDF = {}
@@ -12,8 +12,8 @@ IDF = {}
 def filter_terms():
 
     global all_terms
-    all_terms = { t: all_terms[t] for t in all_terms if all_terms[t]>10}
-    print 'Totolly we have' ,len(all_terms), ' terms after filtering'
+    all_terms = { t: all_terms[t] for t in all_terms if all_terms[t]>10 and t not in stop_words}
+    print 'Totolly we have' , len(all_terms), ' terms after filtering'
 
 def get_words_bag( tokens ):
 
@@ -34,6 +34,8 @@ def get_all_terms():
         for filename, tokens in all_files.items():
             for k in tokens:
                 all_terms[k] = all_terms.get(k,0) + tokens[k]
+
+        filter_terms()
 
         fout = open('all_terms.dat','w')
         pickle.dump(all_terms,fout)
@@ -62,7 +64,7 @@ def get_all_files():
                     full_filename = os.path.join(path,file_name) 
                     fin = open(full_filename).read()
                     fin = fin[fin.index('\n'):]
-                    all_files[full_filename] = get_words_bag(re.findall('[a-zA-Z]+',fin))
+                    all_files[full_filename] = get_words_bag(re.findall('[a-zA-Z\']+',fin))
 
         fout = open('all_files.dat','w')
         pickle.dump(all_files,fout)
@@ -127,7 +129,6 @@ def main():
 
     get_all_files()
     get_all_terms()
-    filter_terms()
     get_idf()
     get_tfidf()
 

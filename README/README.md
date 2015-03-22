@@ -23,17 +23,23 @@ We can extract features from raw texts using many methods, like:
 - Bag of words
 - Tf-idf weighting
 
-In fact, I use bag-of-words method to get features.
+In fact, I use TF-IDF method to get features.
 
 **Execution**
 
+python extract_feature.py
+python logistic.py
+
 **Modules**
+
++ logistic.py ------ Logistic Regression Module
++ extract_feature.py ------ TF-IDF feature-extraction Module
 
 **Performance**
 
-+ Average Precision :
-+ Average Recall : 
-+ F1 Score : 
++ Average Precision : about 0.97
++ Average Recall : about 0.985
++ F1 Score : about 0.98
 
 **GitHub links**
 
