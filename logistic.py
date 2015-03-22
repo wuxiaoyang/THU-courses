@@ -1,6 +1,4 @@
 import numpy as np
-from sklearn.datasets import load_iris
-from sklearn.linear_model import LogisticRegression
 from sklearn import cross_validation
 import cPickle as pickle
 
@@ -67,21 +65,12 @@ class myLogisticRegression:
 
 def main():
 
-    iris = load_iris()
-    #X,y = iris.data[:100],iris.target[:100]
     X,y = pickle.load(open('TF-IDF.dat'))
+    N,D = X.shape
 
     my_clf = myLogisticRegression()
-    std_clf = LogisticRegression()
-
-    N,D = X.shape
     rs = cross_validation.ShuffleSplit(N, n_iter=5, test_size=0.2, random_state=0)
-
-    for train_index, test_index in rs:
-        my_clf.fit( X[train_index, :], y[ train_index ] )
-        ret=my_clf.predict(X[test_index , :])
-        #print sum(ret==y[test_index])/float(len(y[test_index]))
-        my_clf.evaluate( ret, y[test_index])
+    my_clf.cross_validate(X,y,5)
 
 if __name__ == '__main__':
 
