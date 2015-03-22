@@ -1,74 +1,137 @@
 import numpy as np
+import math
 import sys,os
 import re
 import cPickle as pickle
 
 stop_words = set(['of','s','t'])
+all_files = {}
+all_terms = {}
+IDF = {}
 
-def get_word_index():
+def filter_terms():
+
+    global all_terms
+    all_terms = { t: all_terms[t] for t in all_terms if all_terms[t]>10}
+    print 'Totolly we have' ,len(all_terms), ' terms after filtering'
+
+def get_words_bag( tokens ):
+
+    bag={}
+
+    for w in tokens:
+        bag[w]=bag.get(w,0)+1
+
+    return bag
+
+def get_all_terms():
+
+    global all_terms,all_files
+
+    if 'all_terms.dat' in os.listdir(os.getcwd()):
+        print 'All terms has already been got.'
+    else:
+        for filename, tokens in all_files.items():
+            for k in tokens:
+                all_terms[k] = all_terms.get(k,0) + tokens[k]
+
+        fout = open('all_terms.dat','w')
+        pickle.dump(all_terms,fout)
+        fout.close()
+
+        print 'All terms list got.'
+
+    all_terms = pickle.load(open('all_terms.dat','r'))
+
+def get_all_files():
+
+    global all_files
+
+    if 'all_files.dat' in os.listdir(os.getcwd()):
+        print 'File data has already been got.'
+
+    else:
+        
+        for subset in ['s1','s2','s3','s4','s5']:
+            for classname in ['baseball', 'hockey']:
+
+                path =  os.path.join('.','data 1', subset, classname) 
+                print path
+
+                for file_name in os.listdir( path ):
+                    full_filename = os.path.join(path,file_name) 
+                    fin = open(full_filename).read()
+                    fin = fin[fin.index('\n'):]
+                    all_files[full_filename] = get_words_bag(re.findall('[a-zA-Z]+',fin))
+
+        fout = open('all_files.dat','w')
+        pickle.dump(all_files,fout)
+        fout.close()
+
+        print 'All file data got.'
+
+    all_files = pickle.load(open('all_files.dat','r'))
+
+def get_idf():
+
+    global IDF,all_terms
+
+    if 'IDF.dat' in os.listdir(os.getcwd()):
+        print 'IDF has already been got.'
+    else:
+        tot_docs = len(all_files)
+
+        for t in all_terms:
+
+            num_with_t = sum(  t in all_files[filename] for filename in all_files )
+
+            IDF[t]=math.log(tot_docs / float(num_with_t))
+
+        fout = open('IDF.dat','w')
+        pickle.dump(IDF,fout)
+        fout.close()
+        print 'IDF data got.'
+
+    IDF = pickle.load(open('IDF.dat','r'))
+
+def get_tfidf():
     
-    words = pickle.load(open('words_bag.dat','r'))
+    if 'TF-IDF.dat' in os.listdir(os.getcwd()):
+        print 'TF-IDF has already been got.'
+    else:
+        N=len(all_files)
+        D=len(all_terms)
 
-    sorted_words=sorted(words)
-    open('tmp','w').write(str( sorted_words ) )
+        X , y = np.zeros(shape = (N,D)), np.zeros(N)
 
-    index = { w:k for k,w in enumerate(sorted_words)}
+        for i,filename in enumerate(sorted(all_files)):
+            if 'hockey' in filename:
+                y[i] = 1.0
 
-    return index,sorted_words
+        for i,filename in enumerate(sorted(all_files)):
+            tokens = all_files[filename]
 
-def get_subset_feature():
+            tot = float(len(tokens))
 
-    return 
+            for j,term in enumerate(sorted(all_terms)):
+                X[i,j] = tokens.get(term, 0.0) / tot * IDF[term]
 
-    index, sorted_words = get_word_index()
-
-    X,y = None , None
-    
-    for subset in ['s1','s2','s3','s4','s5']:
-        for classname in ['baseball', 'hockey']:
-
-            path =  os.path.join('.','data 1', subset, classname) 
-            print path
-
-            for file_name in os.listdir( path ):
-
-                fin = open(os.path.join(path,file_name)).read()
-
-                cnt={ w:0 for w in index}
-                
-                for w in re.findall('[a-zA-Z0-9]+',fin):
-                    #dic[i] = dic.get(i,0)+1 
-                    cnt[w]+=1
-
-def get_words_bag():
-
-    if 'words_bag.dat' in os.listdir(os.getcwd()):
-        print 'already got.'
-        return 
-
-    words = set()
-    
-    for subset in ['s1','s2','s3','s4','s5']:
-        for classname in ['baseball', 'hockey']:
-
-            path =  os.path.join('.','data 1', subset, classname) 
-            print path
-
-            for file_name in os.listdir( path ):
-
-                fin = open(os.path.join(path,file_name)).read()
-                
-                for w in re.findall('[a-zA-Z]+',fin):
-                    #dic[i] = dic.get(i,0)+1 
-                    words.add(w)
-
-    fout = open('words_bag.dat','w')
-    pickle.dump(words,fout)
-
+        fout = open('TF-IDF.dat','w')
+        pickle.dump((X,y),fout)
+        fout.close()
+        print 'TF-IDF data got.'
+        
 def main():
 
-    get_words_bag()
-    get_word_index()
+    global all_files , stop_words , IDF, all_terms
+
+    get_all_files()
+    get_all_terms()
+    filter_terms()
+    get_idf()
+    get_tfidf()
+
+    #get_word_index()
 
 if __name__ == '__main__':
 
